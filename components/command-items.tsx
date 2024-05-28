@@ -11,7 +11,9 @@ export function SignInWithGithub() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: 'http://localhost:3000/auth/callback',
+        redirectTo: process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}/auth/callback`
+          : 'http://localhost:3000/auth/callback',
       },
     })
     if (data.url) router.push(data.url)
