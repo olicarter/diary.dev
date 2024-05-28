@@ -1,13 +1,8 @@
-import Image from 'next/image'
 import { createClient } from '@/utils/supabase/server'
 import { format, formatISO, intlFormatDistance, parseISO } from 'date-fns'
 
 export default async function FeedbackPage() {
   const supabase = createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
   const { data } = await supabase
     .from('feedback')
@@ -16,14 +11,15 @@ export default async function FeedbackPage() {
     )
     .order('created_at', { ascending: false })
 
-  const feedbackGroupedByDay = data?.reduce((acc, post) => {
-    const date = formatISO(parseISO(post.created_at), {
-      representation: 'date',
-    })
-    if (!acc[date]) acc[date] = []
-    acc[date].push(post)
-    return acc
-  }, {} as Record<string, any[]>)
+  const feedbackGroupedByDay =
+    data?.reduce((acc, post) => {
+      const date = formatISO(parseISO(post.created_at), {
+        representation: 'date',
+      })
+      if (!acc[date]) acc[date] = []
+      acc[date].push(post)
+      return acc
+    }, {} as Record<string, any[]>) ?? {}
 
   return (
     <ul className="space-y-8">

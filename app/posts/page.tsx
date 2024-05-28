@@ -9,14 +9,15 @@ export default async function PostsPage() {
     .select('id, content, created_at')
     .order('created_at', { ascending: false })
 
-  const postsGroupedByDay = data?.reduce((acc, post) => {
-    const date = formatISO(parseISO(post.created_at), {
-      representation: 'date',
-    })
-    if (!acc[date]) acc[date] = []
-    acc[date].push(post)
-    return acc
-  }, {} as Record<string, any[]>)
+  const postsGroupedByDay =
+    data?.reduce((acc, post) => {
+      const date = formatISO(parseISO(post.created_at), {
+        representation: 'date',
+      })
+      if (!acc[date]) acc[date] = []
+      acc[date].push(post)
+      return acc
+    }, {} as Record<string, any[]>) ?? {}
 
   return (
     <ul className="space-y-8">

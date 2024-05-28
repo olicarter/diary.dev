@@ -5,10 +5,8 @@ import { Textarea } from '@/components/ui/textarea'
 import UserCombobox from './UserCombobox'
 import { Label } from '@/components/ui/label'
 import { Sparkles } from 'lucide-react'
-import { useDebounce } from 'react-use'
 import { useState } from 'react'
 import VisibilitySelect from './VisibilitySelect'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 const minLength = 30
 
@@ -16,7 +14,7 @@ export default function CreateFeedbackForm(props: {
   action: (formData: FormData) => Promise<void>
 }) {
   const [content, setContent] = useState('')
-  const [aiText, setAIText] = useState('Waiting for input...')
+  const [aiText] = useState('Waiting for input...')
   const [recipient, setRecipient] = useState('')
 
   // useDebounce(

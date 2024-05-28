@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "gen:types": "supabase gen types typescript --linked > types/supabase.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.4.2",
@@ -43,6 +44,7 @@
     "@types/react": "18.2.48",
     "@types/react-dom": "18.2.18",
     "encoding": "^0.1.13",
-    "partykit": "0.0.105"
+    "partykit": "0.0.105",
+    "supabase": "^1.169.8"
   }
 }
