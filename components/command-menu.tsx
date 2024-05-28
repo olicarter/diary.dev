@@ -38,10 +38,21 @@ interface CommandMenuProps {
 }
 
 export function CommandMenu(props: CommandMenuProps) {
+  const supabase = createClient()
+
   const [pages, setPages] = useState<string[]>([])
   const [search, setSearch] = useState('')
+  const [user, setUser] = useState<User | null>(props.user)
 
   const page = pages[pages.length - 1]
+
+  useEffect(() => {
+    async function fetchUser() {
+      const response = await supabase.auth.getUser()
+      setUser(response.data.user)
+    }
+    fetchUser()
+  }, [])
 
   return (
     <Command
@@ -61,19 +72,28 @@ export function CommandMenu(props: CommandMenuProps) {
         placeholder="Type a command or search..."
         value={search}
       />
-      <CommandMenuList {...props} page={page} setPages={setPages} />
+      <CommandMenuList page={page} setPages={setPages} user={user} />
     </Command>
   )
 }
 
 export function CommandMenuDialog(props: CommandMenuProps) {
+  const supabase = createClient()
+
   const [open, setOpen] = useState(false)
   const [pages, setPages] = useState<string[]>([])
   const [search, setSearch] = useState('')
+  const [user, setUser] = useState<User | null>(props.user)
 
   const page = pages[pages.length - 1]
 
   useEffect(() => {
+    async function fetchUser() {
+      const response = await supabase.auth.getUser()
+      setUser(response.data.user)
+    }
+    fetchUser()
+
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
@@ -114,10 +134,10 @@ export function CommandMenuDialog(props: CommandMenuProps) {
         value={search}
       />
       <CommandMenuList
-        {...props}
         onOpenChange={setOpen}
         page={page}
         setPages={setPages}
+        user={user}
       />
     </CommandDialog>
   )

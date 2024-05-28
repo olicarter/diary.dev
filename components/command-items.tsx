@@ -17,7 +17,7 @@ export function SignInWithGithub() {
           : 'http://localhost:3000/auth/callback',
       },
     })
-    if (data.url) window.location.assign(data.url)
+    if (data.url) router.push(data.url)
     if (error) {
       return router.push('/login?message=Could not authenticate user')
     }
