@@ -1,54 +1,43 @@
-import DeployButton from "../components/DeployButton";
-import AuthButton from "../components/AuthButton";
-import { createClient } from "@/utils/supabase/server";
-import ConnectSupabaseSteps from "@/components/tutorial/ConnectSupabaseSteps";
-import SignUpUserSteps from "@/components/tutorial/SignUpUserSteps";
-import Header from "@/components/Header";
-
 export default async function Index() {
-  const canInitSupabaseClient = () => {
-    // This function is just for the interactive tutorial.
-    // Feel free to remove it once you have Supabase connected.
-    try {
-      createClient();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
-
-  const isSupabaseConnected = canInitSupabaseClient();
-
   return (
-    <div className="flex-1 w-full flex flex-col gap-20 items-center">
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-        <div className="w-full max-w-4xl flex justify-between items-center p-3 text-sm">
-          <DeployButton />
-          {isSupabaseConnected && <AuthButton />}
-        </div>
-      </nav>
-
-      <div className="animate-in flex-1 flex flex-col gap-20 opacity-0 max-w-4xl px-3">
-        <Header />
-        <main className="flex-1 flex flex-col gap-6">
-          <h2 className="font-bold text-4xl mb-4">Next steps</h2>
-          {isSupabaseConnected ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-        </main>
-      </div>
-
-      <footer className="w-full border-t border-t-foreground/10 p-8 flex justify-center text-center text-xs">
+    <>
+      <section className="mt-[25vh] space-y-4">
+        <h1>diary.dev</h1>
         <p>
-          Powered by{" "}
-          <a
-            href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-            target="_blank"
-            className="font-bold hover:underline"
-            rel="noreferrer"
-          >
-            Supabase
-          </a>
+          <q contentEditable>Like a diary, but useful</q> -{' '}
+          <span contentEditable>Someone, probably</span>
         </p>
-      </footer>
-    </div>
-  );
+        <p className="text-indigo-600">
+          Press{' '}
+          <span className="bg-white border border-indigo-600 px-1 py-0.5 rounded">
+            ⌘K
+          </span>{' '}
+          to get started
+        </p>
+      </section>
+      <section>
+        <h5 className="font-bold">diarize any way you like</h5>
+        <p>
+          Whether it's an end-of-day summary, mid-meeting idea, or feedback for
+          a colleague, just get your thoughts down and we'll organize it into
+          something future you will find useful.
+        </p>
+      </section>
+      <section>
+        <h5 className="font-bold">know everything, remember nothing</h5>
+        <p>
+          Use AI to easily query anything you've written, for use in standups,
+          retros, 121s, job applications, whatever you like.
+        </p>
+      </section>
+      <section>
+        <h5 className="font-bold">share, or not</h5>
+        <p>
+          Private by default, you can choose to share specific entries with
+          peers, teams, companies, or the world. Use it solo or create a
+          hyper-transparent team culture, we love both.
+        </p>
+      </section>
+    </>
+  )
 }
