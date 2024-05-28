@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { CommandItem } from '@/components/ui/command'
 import { Github } from 'lucide-react'
+import { revalidatePath } from 'next/cache'
 
 export function SignInWithGithub() {
   const supabase = createClient()
@@ -16,7 +17,7 @@ export function SignInWithGithub() {
           : 'http://localhost:3000/auth/callback',
       },
     })
-    if (data.url) router.push(data.url)
+    if (data.url) window.location.assign(data.url)
     if (error) {
       return router.push('/login?message=Could not authenticate user')
     }

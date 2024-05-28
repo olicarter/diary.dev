@@ -25,3 +25,7 @@ h4,
 q {
   @apply italic;
 }
+
+p {
+  @apply text-black/90 dark:text-white/90;
+}

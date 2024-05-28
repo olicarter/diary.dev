@@ -25,12 +25,18 @@ export default async function RootLayout({ children }: PropsWithChildren) {
   } = await supabase.auth.getUser()
 
   return (
-    <html lang="en" className={cn('bg-neutral-50', inter.className)}>
+    <html
+      lang="en"
+      className={cn(
+        'bg-neutral-50 dark:bg-neutral-950 text-black dark:text-white',
+        inter.className,
+      )}
+    >
       <body>
         <main className="min-h-screen flex flex-col items-center">
           <div className="flex flex-col w-full min-h-svh">
             <div className="flex grow justify-center w-full">
-              <div className="space-y-8 max-w-md w-full">{children}</div>
+              <div className="space-y-8 max-w-lg w-full">{children}</div>
             </div>
           </div>
         </main>
