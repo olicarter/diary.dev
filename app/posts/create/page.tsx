@@ -4,12 +4,9 @@ import { createPost } from '../actions'
 
 export default async function CreatePostPage() {
   return (
-    <>
-      <h3>Create Post</h3>
-      <form action={createPost} className="flex flex-col gap-8 rounded w-full">
-        <Textarea autoFocus name="content" />
-        <Button>Post</Button>
-      </form>
-    </>
+    <form action={createPost} className="flex flex-col gap-8 rounded w-full">
+      <Textarea autoFocus name="content" />
+      <Button>Post</Button>
+    </form>
   )
 }

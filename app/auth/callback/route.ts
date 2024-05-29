@@ -12,9 +12,9 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = createClient();
     await supabase.auth.exchangeCodeForSession(code);
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      redirectUrl += `/${user.user_metadata.user_name}`
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.user_metadata.user_name) {
+      redirectUrl += `/${user.user_metadata.user_name}`;
     }
   }
 

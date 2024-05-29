@@ -18,5 +18,5 @@ export default async function ProfilePage() {
 
   if (!profile) notFound()
 
-  return <h3>diary.dev/{profile.username}</h3>
+  return null
 }

@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { type DialogProps } from '@radix-ui/react-dialog'
 import { Command as CommandPrimitive, useCommandState } from 'cmdk'
-import { LucideIcon, Search } from 'lucide-react'
+import { LoaderCircle, LucideIcon, Search } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -48,10 +48,19 @@ const CommandDialog = ({
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
+    loading?: boolean
+  }
+>(({ className, loading, ...props }, ref) => (
+  <div
+    className="flex h-12 items-center border-b border-black/20 dark:border-white/20 px-3"
+    cmdk-input-wrapper=""
+  >
+    {loading ? (
+      <LoaderCircle className="animate-spin mr-2 h-4 w-4 shrink-0 opacity-50" />
+    ) : (
+      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    )}
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -122,28 +131,35 @@ CommandSeparator.displayName = CommandPrimitive.Separator.displayName
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & {
+    comingSoon?: boolean
     icon?: LucideIcon
     subItem?: boolean
   }
->(({ children, className, icon: Icon, ...props }, ref) => {
-  const search = useCommandState(state => state.search)
+>(
+  (
+    { children, className, comingSoon, disabled, icon: Icon, ...props },
+    ref,
+  ) => {
+    const search = useCommandState(state => state.search)
 
-  if (props.subItem && !search) return null
+    if (props.subItem && !search) return null
 
-  return (
-    <CommandPrimitive.Item
-      ref={ref}
-      className={cn(
-        'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-neutral-100 aria-selected:text-neutral-900 data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 dark:aria-selected:bg-neutral-800 dark:aria-selected:text-neutral-50',
-        className,
-      )}
-      {...props}
-    >
-      {Icon && <Icon className="mr-2 size-4" />}
-      {children}
-    </CommandPrimitive.Item>
-  )
-})
+    return (
+      <CommandPrimitive.Item
+        ref={ref}
+        className={cn(
+          'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-neutral-100 aria-selected:text-neutral-900 data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 dark:aria-selected:bg-neutral-800 dark:aria-selected:text-neutral-50',
+          className,
+        )}
+        disabled={comingSoon || disabled}
+        {...props}
+      >
+        {Icon && <Icon className="mr-2 size-4" />}
+        {children}
+      </CommandPrimitive.Item>
+    )
+  },
+)
 
 CommandItem.displayName = CommandPrimitive.Item.displayName
 

@@ -1,8 +1,7 @@
 export default async function Index() {
   return (
-    <div className="space-y-4 pt-[25vh] pb-4">
-      <section className="px-4 space-y-4">
-        <h1>diary.dev</h1>
+    <div className="space-y-4">
+      <section className="space-y-4">
         <p>
           <q>Like a diary, but useful</q> - <span>Someone, probably</span>
         </p>
@@ -14,7 +13,7 @@ export default async function Index() {
           to get started
         </p>
       </section>
-      <section className="px-4">
+      <section>
         <h5 className="font-bold">diarize any way you like</h5>
         <p>
           Whether it's an end-of-day summary, mid-meeting idea, or feedback for
@@ -22,14 +21,14 @@ export default async function Index() {
           something useful.
         </p>
       </section>
-      <section className="px-4">
+      <section>
         <h5 className="font-bold">know everything, remember nothing</h5>
         <p>
           Use AI to easily query anything you've written, for use in standups,
           retros, 121s, job applications, whatever you like.
         </p>
       </section>
-      <section className="px-4">
+      <section>
         <h5 className="font-bold">share, or not</h5>
         <p>
           Private by default, you can choose to share specific entries with

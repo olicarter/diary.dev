@@ -2,8 +2,9 @@ import { Inter } from 'next/font/google'
 import '@/app/globals.css'
 import { type PropsWithChildren } from 'react'
 import { cn } from '@/lib/utils'
-import { CommandMenuDialog } from '@/components/command-menu'
+import { CommandMenu } from '@/components/command-menu'
 import { createClient } from '@/utils/supabase/server'
+import Path from '@/app/Path'
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -32,15 +33,19 @@ export default async function RootLayout({ children }: PropsWithChildren) {
         inter.className,
       )}
     >
-      <body>
-        <main className="min-h-screen flex flex-col items-center">
-          <div className="flex flex-col w-full min-h-svh">
-            <div className="flex grow justify-center w-full">
-              <div className="space-y-8 max-w-lg w-full">{children}</div>
-            </div>
-          </div>
+      <body className="grid grid-cols-[320px_1fr] xl:grid-cols-[320px_1fr_320px]">
+        <aside className="border-r dark:border-white/20">
+          <CommandMenu user={user} />
+        </aside>
+        <main className="min-h-screen flex flex-col">
+          <header className="border-b border-black/20 dark:border-white/20 flex h-12 items-center px-4">
+            <Path />
+          </header>
+          <div className="p-4 space-y-4 w-full">{children}</div>
         </main>
-        <CommandMenuDialog user={user} />
+        <aside className="border-l dark:border-white/20 hidden xl:flex">
+          <div className="h-12 border-b border-black/20 dark:border-white/20 w-full" />
+        </aside>
       </body>
     </html>
   )

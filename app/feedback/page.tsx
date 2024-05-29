@@ -24,7 +24,7 @@ export default async function FeedbackPage() {
   return (
     <ul className="space-y-8">
       {Object.entries(feedbackGroupedByDay).map(([day, feedbackList]) => (
-        <section className="space-y-4">
+        <section className="space-y-4" key={day}>
           <h4>{format(parseISO(day), 'dd MMM')}</h4>
           <ul className="space-y-4">
             {feedbackList.map(feedback => (

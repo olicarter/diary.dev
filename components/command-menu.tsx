@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
@@ -12,8 +11,15 @@ import {
   CommandSeparator,
 } from '@/components/ui/command'
 import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
-import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
+import { useRouter, useSelectedLayoutSegment } from 'next/navigation'
+import {
+  useState,
+  useEffect,
+  type Dispatch,
+  type SetStateAction,
+  useRef,
+  RefObject,
+} from 'react'
 import { type User } from '@supabase/supabase-js'
 import {
   BookOpenCheck,
@@ -23,81 +29,35 @@ import {
   LogOut,
   MessageCircleHeart,
   NotebookPen,
-  Plus,
   Share,
   Share2,
   LogIn,
   Sparkles,
-  UserSearch,
-  Eye,
+  Check,
+  Home,
 } from 'lucide-react'
-import * as CommandItems from './command-items'
+import * as CommandItems from '@/components/command-items'
 
 interface CommandMenuProps {
   user: User | null
 }
 
 export function CommandMenu(props: CommandMenuProps) {
-  const supabase = createClient()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const [pages, setPages] = useState<string[]>([])
   const [search, setSearch] = useState('')
-  const [user, setUser] = useState<User | null>(props.user)
+  const [loading, setLoading] = useState(false)
 
   const page = pages[pages.length - 1]
 
   useEffect(() => {
-    async function fetchUser() {
-      const response = await supabase.auth.getUser()
-      setUser(response.data.user)
-    }
-    fetchUser()
-  }, [])
-
-  return (
-    <Command
-      className="border-[1.5px] border-black/20"
-      onKeyDown={e => {
-        // Escape goes to previous page
-        // Backspace goes to previous page when search is empty
-        if (e.key === 'Escape' || (e.key === 'Backspace' && !search)) {
-          e.preventDefault()
-          setPages(pages => pages.slice(0, -1))
-        }
-      }}
-    >
-      <CommandInput
-        autoFocus
-        onValueChange={setSearch}
-        placeholder="Type a command or search..."
-        value={search}
-      />
-      <CommandMenuList page={page} setPages={setPages} user={user} />
-    </Command>
-  )
-}
-
-export function CommandMenuDialog(props: CommandMenuProps) {
-  const supabase = createClient()
-
-  const [open, setOpen] = useState(false)
-  const [pages, setPages] = useState<string[]>([])
-  const [search, setSearch] = useState('')
-  const [user, setUser] = useState<User | null>(props.user)
-
-  const page = pages[pages.length - 1]
-
-  useEffect(() => {
-    async function fetchUser() {
-      const response = await supabase.auth.getUser()
-      setUser(response.data.user)
-    }
-    fetchUser()
-
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      const cmdK = e.key === 'k' && (e.metaKey || e.ctrlKey)
+      const forwardSlash = e.key === '/'
+      if (cmdK || forwardSlash) {
         e.preventDefault()
-        setOpen(open => !open)
+        inputRef.current?.focus()
       }
     }
 
@@ -105,8 +65,13 @@ export function CommandMenuDialog(props: CommandMenuProps) {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
+  useEffect(() => {
+    setSearch('')
+  }, [page])
+
   return (
-    <CommandDialog
+    <Command
+      className="h-full"
       onKeyDown={e => {
         // Escape goes to previous page
         // Backspace goes to previous page when search is empty
@@ -118,34 +83,33 @@ export function CommandMenuDialog(props: CommandMenuProps) {
           setPages(pages => pages.slice(0, -1))
         }
       }}
-      open={open}
-      onOpenChange={v => {
-        setOpen(v)
-        if (v === false) {
-          setPages([])
-          setSearch('')
-        }
-      }}
     >
       <CommandInput
         autoFocus
+        loading={loading}
         onValueChange={setSearch}
         placeholder="Type a command or search..."
+        ref={inputRef}
         value={search}
       />
       <CommandMenuList
-        onOpenChange={setOpen}
+        inputRef={inputRef}
         page={page}
+        search={search}
+        setLoading={setLoading}
         setPages={setPages}
-        user={user}
+        user={props.user}
       />
-    </CommandDialog>
+    </Command>
   )
 }
 
 interface CommandMenuListProps extends CommandMenuProps {
+  inputRef: RefObject<HTMLInputElement>
   onOpenChange?: (open: boolean) => void
   page: string
+  search: string
+  setLoading: Dispatch<SetStateAction<boolean>>
   setPages: Dispatch<SetStateAction<string[]>>
 }
 
@@ -153,61 +117,107 @@ function CommandMenuList(props: CommandMenuListProps) {
   const supabase = createClient()
   const router = useRouter()
 
-  const onClose = () => props.onOpenChange?.(false)
+  const [user, setUser] = useState<User | null>(props.user)
 
-  const push = (href: string) => {
+  async function fetchUser() {
+    const response = await supabase.auth.getUser()
+    setUser(response.data.user)
+  }
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
+
+  function push(href: string) {
     router.push(href)
     props.setPages([])
-    onClose()
+    // onClose()
   }
 
-  const signOut = async () => {
+  async function signOut() {
+    props.setLoading(true)
     await supabase.auth.signOut()
-    router.refresh()
-    onClose()
+    fetchUser()
+    router.replace('/')
+    props.setLoading(false)
+    // onClose()
   }
+
+  function appendPage(page: string) {
+    props.setPages(prev => [...prev, page])
+  }
+
+  function hasIdentity(provider: string) {
+    return user?.identities?.some(i => i.provider === provider)
+  }
+
+  const segment = useSelectedLayoutSegment()
 
   return (
-    <CommandList>
-      <CommandEmpty>No results found.</CommandEmpty>
+    <CommandList className="max-h-full">
+      {props.search !== '' && <CommandEmpty>No results found.</CommandEmpty>}
       {!props.page && (
         <>
-          {props.user ? (
+          {user ? (
             <>
-              <CommandGroup>
-                <CommandItem
-                  icon={Plus}
-                  onSelect={() => props.setPages(prev => [...prev, 'create'])}
-                >
-                  Create...
+              {segment === 'feedback' && (
+                <>
+                  <CommandGroup heading="Feedback">
+                    <CommandItems.CreateFeedback inputRef={props.inputRef} />
+                  </CommandGroup>
+                  <CommandSeparator />
+                </>
+              )}
+              {segment === 'posts' && (
+                <>
+                  <CommandGroup heading="Posts">
+                    <CommandItems.CreatePost inputRef={props.inputRef} />
+                  </CommandGroup>
+                  <CommandSeparator />
+                </>
+              )}
+              <CommandGroup heading="Pages">
+                <CommandItem icon={Home} onSelect={() => push('/timeline')}>
+                  Timeline
                 </CommandItem>
                 <CommandItem
-                  icon={Eye}
-                  onSelect={() => props.setPages(prev => [...prev, 'view'])}
+                  icon={MessageCircleHeart}
+                  onSelect={() => push('/feedback')}
                 >
-                  View...
+                  Feedback
+                </CommandItem>
+                <CommandItem icon={NotebookPen} onSelect={() => push('/posts')}>
+                  Posts
                 </CommandItem>
               </CommandGroup>
               <CommandSeparator />
               <CommandGroup>
-                <CommandItem icon={Sparkles}>Query with AI</CommandItem>
-                <CommandItem icon={HandCoins}>Find Work</CommandItem>
+                <CommandItem comingSoon icon={Sparkles}>
+                  Query with AI
+                </CommandItem>
+                <CommandItem comingSoon icon={HandCoins}>
+                  Find Work
+                </CommandItem>
               </CommandGroup>
               <CommandSeparator />
               <CommandGroup heading="Connect">
-                <CommandItem icon={UserSearch}>Find Colleague</CommandItem>
-                <CommandItem icon={Building2}>Join Team</CommandItem>
-                <CommandItem icon={Share}>Share Profile</CommandItem>
+                <CommandItem comingSoon icon={Building2}>
+                  Join Team
+                </CommandItem>
+                <CommandItem comingSoon icon={Share}>
+                  Share Profile
+                </CommandItem>
               </CommandGroup>
               <CommandSeparator />
             </>
           ) : (
             <>
               <CommandGroup>
-                <CommandItems.SignInWithGithub />
+                <CommandItems.SignInWithGithub setLoading={props.setLoading} />
+                <CommandItems.SignInWithGoogle setLoading={props.setLoading} />
                 <CommandItem
                   icon={LogIn}
-                  onSelect={() => props.setPages(prev => [...prev, 'sign-in'])}
+                  onSelect={() => appendPage('sign-in')}
                 >
                   Sign In with...
                 </CommandItem>
@@ -216,31 +226,36 @@ function CommandMenuList(props: CommandMenuListProps) {
             </>
           )}
           <CommandGroup heading="Learn">
-            {props.user && (
-              <CommandItem icon={BookOpenCheck}>
+            {user && (
+              <CommandItem comingSoon icon={BookOpenCheck}>
                 Complete Coding Challenges
               </CommandItem>
             )}
-            <CommandItem icon={GraduationCap}>What is diary.dev?</CommandItem>
+            <CommandItem comingSoon icon={GraduationCap}>
+              What is diary.dev?
+            </CommandItem>
           </CommandGroup>
-          {props.user && (
+          {user && (
             <>
               <CommandSeparator />
               <CommandGroup heading="Settings">
-                <CommandItem className="space-x-2">
+                <CommandItem comingSoon className="space-x-2">
                   <div className="border-[1.5px] border-black rounded-full size-4">
                     <Image
                       alt="Avatar"
                       className="rounded-full"
                       height={16}
-                      src={props.user.user_metadata.avatar_url}
+                      src={user.user_metadata.avatar_url}
                       width={16}
                     />
                   </div>
                   <span>Edit Profile...</span>
                 </CommandItem>
-                <CommandItem icon={Share2} onSelect={signOut}>
-                  Connect Account...
+                <CommandItem
+                  icon={Share2}
+                  onSelect={() => appendPage('link-account')}
+                >
+                  Link Account...
                 </CommandItem>
                 <CommandItem icon={LogOut} onSelect={signOut}>
                   Sign Out
@@ -250,38 +265,36 @@ function CommandMenuList(props: CommandMenuListProps) {
           )}
         </>
       )}
-      {props.page === 'create' && (
-        <CommandGroup>
-          <CommandItem
-            icon={NotebookPen}
-            onSelect={() => push('/posts/create')}
+      {props.page === 'link-account' && (
+        <CommandGroup heading="Link account...">
+          <CommandItems.SignInWithGithub
+            disabled={hasIdentity('github')}
+            setLoading={props.setLoading}
           >
-            Create Post
-          </CommandItem>
-          <CommandItem
-            icon={MessageCircleHeart}
-            onSelect={() => push('/feedback/create')}
+            <div className="flex items-center justify-between w-full">
+              <span>Github</span>
+              {hasIdentity('github') && <Check className="size-4" />}
+            </div>
+          </CommandItems.SignInWithGithub>
+          <CommandItems.SignInWithGoogle
+            disabled={hasIdentity('google')}
+            setLoading={props.setLoading}
           >
-            Submit Feedback
-          </CommandItem>
+            <div className="flex items-center justify-between w-full">
+              <span>Google</span>
+              {hasIdentity('google') && <Check className="size-4" />}
+            </div>
+          </CommandItems.SignInWithGoogle>
         </CommandGroup>
       )}
       {props.page === 'sign-in' && (
-        <CommandGroup>
-          <CommandItems.SignInWithGithub />
-        </CommandGroup>
-      )}
-      {props.page === 'view' && (
-        <CommandGroup>
-          <CommandItem onSelect={() => push('/posts')}>
-            View My Posts
-          </CommandItem>
-          <CommandItem onSelect={() => push('/feedback')}>
-            View Submitted Feedback
-          </CommandItem>
-          <CommandItem onSelect={() => push('/feedback')}>
-            View Received Feedback
-          </CommandItem>
+        <CommandGroup heading="Sign In with...">
+          <CommandItems.SignInWithGithub setLoading={props.setLoading}>
+            Github
+          </CommandItems.SignInWithGithub>
+          <CommandItems.SignInWithGoogle setLoading={props.setLoading}>
+            Google
+          </CommandItems.SignInWithGoogle>
         </CommandGroup>
       )}
     </CommandList>
